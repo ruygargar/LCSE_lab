@@ -140,6 +140,7 @@ begin
 			
 			when RX_wait_bus =>
 				DMA_RQ <= '1';
+				Ready <= '1';
 
 				if DMA_ACK = '1' then
 					RX_start <= '1';
