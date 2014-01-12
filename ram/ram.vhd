@@ -33,7 +33,7 @@ PORT (
 		Databus  		: inout std_logic_vector(7 downto 0) := (others => 'Z');
 		Switches			: out   std_logic_vector(7 downto 0);
 		Temp_L			: out   std_logic_vector(6 downto 0);
-		Temp_h			: out   std_logic_vector(6 downto 0)
+		Temp_H			: out   std_logic_vector(6 downto 0)
 	);
 end ram;
 
