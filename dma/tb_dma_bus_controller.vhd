@@ -168,7 +168,7 @@ BEGIN
 		wait for 175 ns;
 		RX_empty <= '1';
 		wait until DMA_RQ = '0';
-		DMA_ACK <= '0';
+		DMA_ACK <= '0' after 2 ns;
 		
 		wait until BC_state_ns = 0;
 		Databus <= X"22";

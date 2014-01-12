@@ -118,27 +118,77 @@ BEGIN
 	
 	Databus <= X"55" after 102 ns, X"AA" after 127 ns, -- Write TX Buffers
 				  X"00" after 177 ns, -- Send handshake
-				  (others => 'Z') after 227 ns; -- Free bus
+				  (others => 'Z') after 227 ns, -- Free bus (Send)
+					X"00" after 377 ns, -- Catch bus again
+					(others => 'Z') after 89977 ns, -- Free bus (1º DMA_ACK)
+					X"00" after 90127 ns, -- Catch bus again
+					(others => 'Z') after 256627 ns, -- Free bus (2º DMA_ACK)
+					X"00" after 256827 ns, -- Catch bus 
+					X"00" after 300027 ns, -- Clean NEW_INST flag		
+					X"00" after 300077 ns, -- Catch bus
+					(others => 'Z') after 610027 ns, -- Free bus (3º DMA_ACK)
+					X"00" after 610477 ns; -- Catch bus 
 				  
 	Address <= DMA_TX_BUFFER_MSB after 102 ns, DMA_TX_BUFFER_LSB after 127 ns, -- Write TX Buffers
 				  X"FF" after 177 ns, -- Send handshake
-				   (others => 'Z') after 227 ns; -- Free bus
+				  (others => 'Z') after 227 ns, -- Free bus (Send)
+					X"FF" after 377 ns, -- Catch bus again
+					(others => 'Z') after 89977 ns, -- Free bus (1º DMA_ACK)
+					X"FF" after 90127 ns, -- Catch bus 
+					(others => 'Z') after 256627 ns, -- Free bus	(2º DMA_ACK)
+					X"FF" after 256827 ns, -- Catch bus 
+					NEW_INST after 300027 ns, -- Clean NEW_INST flag							
+					X"FF" after 300077 ns, -- Catch bus 
+					(others => 'Z') after 610027 ns, -- Free bus (3º DMA_ACK)
+					X"FF" after 610477 ns; -- Catch bus 
 					
-	ChipSelect <= '1' after 102 ns, '0' after 177 ns, -- Write TX Buffers & Send handshake
-					  'Z' after 227 ns; -- Free bus
-	
-	WriteEnable <= '1' after 102 ns, '0' after 177 ns, -- Write TX Buffers & Send handshake
-						'Z' after 227 ns; -- Free bus
-	
-	OutputEnable <= '0' after 102 ns, -- Write TX Buffers & Send handshake
-						 'Z' after 227 ns; -- Free bus
- 
-   Send <= '1' after 177 ns, '0' after 227 ns; -- Send handshake
-	
-	DMA_ACK <= '1' after 111775 ns, '0' after 120000 ns; -- DMA-ACK handshake
+	ChipSelect <= '1' after 102 ns, '0' after 177 ns, -- Write TX Buffers
+					  'Z' after 227 ns, -- Free bus (Send)
+						'0' after 377 ns, -- Catch bus again
+						'Z' after 89977 ns, -- Free bus (1º DMA_ACK)
+						'0' after 90127 ns, -- Catch bus again
+						'Z' after 256627 ns, -- Free bus (2º DMA_ACK)						 
+						'0' after 256827 ns, -- Catch bus again
+						'1' after 300027 ns, -- Clean NEW_INST flag
+						'0' after 300077 ns, -- Catch bus again
+						'Z' after 610027 ns, -- Free bus (3º DMA_ACK)
+						'0' after 610477 ns; -- Catch bus again
+						
+	WriteEnable <= '1' after 102 ns, '0' after 177 ns, -- Write TX Buffers
+						'Z' after 227 ns, -- Free bus (Send)
+						'0' after 377 ns, -- Catch bus again
+						'Z' after 89977 ns, -- Free bus (1º DMA_ACK)
+						'0' after 90127 ns, -- Catch bus again
+						'Z' after 256627 ns, -- Free bus (2º DMA_ACK)
+						'0' after 256827 ns, -- Catch bus again
+						'1' after 300027 ns, -- Clean NEW_INST flag
+						'0' after 300077 ns, -- Catch bus again
+						'Z' after 610027 ns, -- Free bus
+						'0' after 610477 ns; -- Catch bus again
 
+	
+	OutputEnable <= '0' after 102 ns, -- Write TX Buffers
+						 'Z' after 227 ns, -- Free bus (Send)
+						 '0' after 377 ns, -- Catch bus again
+						 'Z' after 89977 ns, -- Free bus (1º DMA_ACK)
+						 '0' after 90127 ns, -- Catch bus again
+						 'Z' after 256627 ns, -- Free bus (2º DMA_ACK)
+						 '0' after 256827 ns, -- Catch bus again
+						 '0' after 300027 ns, -- Clean NEW_INST flag
+						 '0' after 300077 ns, -- Catch bus again
+						 'Z' after 610027 ns, -- Free bus (3º DMA_ACK)
+						 '0' after 610477 ns; -- Catch bus again
+						 
+  Send <= '1' after 177 ns, '0' after 327 ns; -- Send handshake
+	
+	DMA_ACK <= '1' after 89927 ns, '0' after 90077 ns, -- 1º DMA-ACK handshake
+						 '1' after 256577 ns, '0' after 256777 ns, -- 2º DMA-ACK handshake
+						 '1' after 609977 ns, '0' after 610427 ns; -- 3º DMA-ACK handshake
+						 
    -- Stimulus process
-	process
+	 
+	
+	RX_process: process	-- Data received from RS232 RX
 	begin
 		wait for 200 ns;
 		Transmit(RX, X"01");
@@ -147,6 +197,7 @@ BEGIN
 		Transmit(RX, X"04");
 		Transmit(RX, X"05");
 		Transmit(RX, X"06");
+		Transmit(RX, X"07");
 		wait;
 	end process;
 END;

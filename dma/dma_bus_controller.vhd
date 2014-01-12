@@ -162,7 +162,7 @@ begin
 			
 				DMA_RQ <= '1';
 				if RX_end = '1' then
-					DMA_RQ <= '0';
+					--DMA_RQ <= '0';
 					BC_next <= RX_free_bus;
 				else
 					BC_next <= RX_use_bus;
