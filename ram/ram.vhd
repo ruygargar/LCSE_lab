@@ -1,22 +1,12 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date:    18:33:17 01/03/2014 
--- Design Name: 
--- Module Name:    ram - Behavioral 
--- Project Name: 
--- Target Devices: 
--- Tool versions: 
--- Description: 
---
--- Dependencies: 
---
--- Revision: 
--- Revision 0.01 - File Created
--- Additional Comments: 
---
-----------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- Author: 	Aragonés Orellana, Silvia
+--				García Garcia, Ruy
+
+-- Project Name: 	PIC 
+-- Design  Name: 	ram.vhd
+-- Module  Name:	ram.vhd
+-------------------------------------------------------------------------------
+
 library IEEE;
 USE IEEE.std_logic_1164.all;
 USE IEEE.std_logic_arith.all;
@@ -38,9 +28,8 @@ PORT (
 end ram;
 
 architecture Behavioral of ram is
-	signal WE : std_logic_vector(3 downto 0);
-	signal OE : std_logic_vector(3 downto 0);
 	
+	-- Declaración del componente Bloque de Ram de 64 Bytes.
 	COMPONENT bram64
 	PORT(
 		Clk : IN std_logic;
@@ -51,6 +40,7 @@ architecture Behavioral of ram is
 		);
 	END COMPONENT;
 	
+	-- Declaración del componente SPR.
 	COMPONENT spr
 	PORT(
 		Clk : IN std_logic;
@@ -64,9 +54,17 @@ architecture Behavioral of ram is
 		Temp_h : OUT std_logic_vector(6 downto 0)
 		);
 	END COMPONENT;
+	
+	-- Buses de señales procedentes del decodificador "DEC2:4", que controlan
+	-- las señales WriteEnable y OutputEnable de cada BRAM (Block RAM) y del 
+	-- bloque SPR (Specific Porpouse Registers).
+	signal WE : std_logic_vector(3 downto 0);
+	signal OE : std_logic_vector(3 downto 0);
 
 begin
 
+	-- Instancia del SPR. En el decodificador "DEC2:4", sus señales de control 
+	-- se corresponden con la salida 0.
 	spr_0: spr PORT MAP(
 		Clk => Clk,
 		Reset => Reset,
@@ -79,7 +77,8 @@ begin
 		Temp_H => Temp_H
 	);
 
-
+	-- Instancia de BRAM. En el decodificador "DEC2:4", sus señales de control 
+	-- se corresponden con la salida 1.
 	bram_1: bram64 PORT MAP(
 		Clk => Clk,
 		WriteEnable => WE(1),
@@ -88,6 +87,8 @@ begin
 		Databus => Databus(7 downto 0)
 	);
 	
+	-- Instancia de BRAM. En el decodificador "DEC2:4", sus señales de control 
+	-- se corresponden con la salida 2.
 	bram_2: bram64 PORT MAP(
 		Clk => Clk,
 		WriteEnable => WE(2),
@@ -96,6 +97,8 @@ begin
 		Databus => Databus(7 downto 0)
 	);
 	
+	-- Instancia de BRAM. En el decodificador "DEC2:4", sus señales de control 
+	-- se corresponden con la salida 3.
 	bram_3: bram64 PORT MAP(
 		Clk => Clk,
 		WriteEnable => WE(3),
@@ -104,6 +107,11 @@ begin
 		Databus => Databus(7 downto 0)
 	);
 	
+	-- Proceso combinacional que decodifica en función del bus de dirección y
+	-- las señales ChipSelect, WriteEnable y OutputEnable, las señales de 
+	-- control WE y OE de cada uno de los bloques del sistema de almacenamiento.
+	-- La escritura predomina sobre la lectura, en caso de tener activadas ambas
+	-- señales de control.
 	process(ChipSelect, WriteEnable, OutputEnable, Address(7 downto 6))
 	begin
 		WE <= X"0";

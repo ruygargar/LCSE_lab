@@ -1,33 +1,14 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date:    22:59:49 01/07/2014 
--- Design Name: 
--- Module Name:    dma - Behavioral 
--- Project Name: 
--- Target Devices: 
--- Tool versions: 
--- Description: 
---
--- Dependencies: 
---
--- Revision: 
--- Revision 0.01 - File Created
--- Additional Comments: 
---
-----------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- Author: 	Aragonés Orellana, Silvia
+--				García Garcia, Ruy
+
+-- Project Name: 	PIC 
+-- Design  Name: 	dma.vhd
+-- Module  Name:	dma.vhd
+-------------------------------------------------------------------------------
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx primitives in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
 
 entity dma is
     Port ( Clk : in  STD_LOGIC;
@@ -53,6 +34,7 @@ end dma;
 
 architecture Behavioral of dma is
 
+	-- Declaración del componente Controlador de Bus.
 	COMPONENT dma_bus_controller
 	PORT(
 		Clk : IN std_logic;
@@ -85,6 +67,7 @@ architecture Behavioral of dma is
 		);
 	END COMPONENT;
 	
+	-- Declaración del componente Transmisor.
 	COMPONENT dma_tx
 	PORT(
 		Clk : IN std_logic;
@@ -103,6 +86,7 @@ architecture Behavioral of dma is
 		);
 	END COMPONENT;
 	
+	-- Declaración del componente Receptor.
 	COMPONENT dma_rx
 	PORT(
 		Clk : IN std_logic;
@@ -120,14 +104,8 @@ architecture Behavioral of dma is
 		);
 	END COMPONENT;
 	
-	signal RX_Databus_i : std_logic_vector(7 downto 0);
-	signal RX_Address_i : std_logic_vector(7 downto 0);
-	signal RX_ChipSelect_i : std_logic;
-	signal RX_WriteEnable_i : std_logic;
-	signal RX_OutputEnable_i : std_logic;
-	signal RX_start_i : std_logic;
-	signal RX_end_i : std_logic;
-	
+	-- Buses y señales internas, procedentes del Transmisor, empleadas para la
+	-- interconexión entre el subsistema Transmisor y el Controlador de bus. 
 	signal TX_Databus_i : std_logic_vector(7 downto 0);
 	signal TX_Address_i : std_logic_vector(7 downto 0);
 	signal TX_ChipSelect_i : std_logic;
@@ -136,9 +114,20 @@ architecture Behavioral of dma is
 	signal TX_start_i : std_logic;
 	signal TX_ready_i : std_logic;
 	signal TX_end_i : std_logic;
+		
+	-- Buses y señales internas, procedentes del Receptor, empleadas para la
+	-- interconexión entre el subsistema Receptor y el Controlador de bus. 
+	signal RX_Databus_i : std_logic_vector(7 downto 0);
+	signal RX_Address_i : std_logic_vector(7 downto 0);
+	signal RX_ChipSelect_i : std_logic;
+	signal RX_WriteEnable_i : std_logic;
+	signal RX_OutputEnable_i : std_logic;
+	signal RX_start_i : std_logic;
+	signal RX_end_i : std_logic;
 	
 begin
 
+	-- Instancia del Controlador de Bus.
 	bus_controller: dma_bus_controller PORT MAP(
 		Clk => Clk,
 		Reset => Reset,
@@ -169,6 +158,7 @@ begin
 		TX_end => TX_end_i
 	);
 	
+	-- Instancia del Transmisor.
 	tx: dma_tx PORT MAP(
 		Clk => Clk,
 		Reset => Reset,
@@ -185,6 +175,7 @@ begin
 		Ack_DO => Ack_out
 	);
 	
+	-- Instancia del Receptor.
 	rx: dma_rx PORT MAP(
 		Clk => Clk,
 		Reset => Reset,

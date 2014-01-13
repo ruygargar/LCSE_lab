@@ -1,3 +1,12 @@
+-------------------------------------------------------------------------------
+-- Author: 	Aragonés Orellana, Silvia
+--				García Garcia, Ruy
+
+-- Project Name: 	PIC 
+-- Design  Name: 	ram.vhd
+-- Module  Name:	spr.vhd
+-------------------------------------------------------------------------------
+
 LIBRARY IEEE;
 USE IEEE.std_logic_1164.all;
 USE IEEE.std_logic_arith.all;
@@ -20,6 +29,12 @@ entity spr is
 end spr;
 
 architecture Behavioral of spr is
+
+	-- Señales usadas para inferir los biestables necesarios para cada uno de
+	-- los registros de función específica.
+	-- Cada señal tiene la longitud necesaria para almacenar únicamente
+	-- información útil, despreciando los bits de la palabra que no son 
+	-- utilizados.	
 	signal DMA_RX_BUFFER_MSB_REG : std_logic_vector (7 downto 0);
 	signal DMA_RX_BUFFER_MID_REG : std_logic_vector (7 downto 0);
 	signal DMA_RX_BUFFER_LSB_REG : std_logic_vector (7 downto 0);
@@ -47,6 +62,13 @@ architecture Behavioral of spr is
 	signal T_STAT_REG				  : std_logic_vector (7 downto 0);
 
 begin
+	-- Proceso secuencial utilizado para la actualización del valor almacenado
+	-- en los registros.
+	-- Únicamente cuando la señal de control WriteEnable esté activada, 
+	-- almacenará el valor del bus de datos en el registro cuya dirección 
+	-- esté seleccionada en el bus de direcciones.
+	-- Dispone de una señal de reset asíncrona, activa a nivel bajo, para 
+	-- inicializar el valor de los biestables.
 	process (Clk, Reset)
 	begin
 	  if Reset = '0' then
@@ -77,79 +99,165 @@ begin
 			T_STAT_REG				  <= X"20";
 		elsif Clk'event and Clk = '1' then
 		 if WriteEnable = '1' then
+			
 			case Address is
-				when DMA_RX_BUFFER_MSB(5 downto 0) 		 => DMA_RX_BUFFER_MSB_REG 	<= Databus;
-				when DMA_RX_BUFFER_MID(5 downto 0) 		 => DMA_RX_BUFFER_MID_REG 	<= Databus;
-				when DMA_RX_BUFFER_LSB(5 downto 0) 		 => DMA_RX_BUFFER_LSB_REG 	<= Databus;
-				when NEW_INST(5 downto 0) 			  		 => NEW_INST_REG 				<= Databus;
-				when DMA_TX_BUFFER_MSB(5 downto 0) 		 => DMA_TX_BUFFER_MSB_REG 	<= Databus;
-				when DMA_TX_BUFFER_LSB(5 downto 0) 		 => DMA_TX_BUFFER_LSB_REG 	<= Databus;
-				when SWITCH_BASE(5 downto 0) 				 => SWITCH_0_REG				<= Databus(0);
-				when (SWITCH_BASE(5 downto 0)+"000001") => SWITCH_1_REG 				<= Databus(0);
-				when (SWITCH_BASE(5 downto 0)+"000010") => SWITCH_2_REG 				<= Databus(0);
-				when (SWITCH_BASE(5 downto 0)+"000011") => SWITCH_3_REG 				<= Databus(0);
-				when (SWITCH_BASE(5 downto 0)+"000100") => SWITCH_4_REG 				<= Databus(0);
-				when (SWITCH_BASE(5 downto 0)+"000101") => SWITCH_5_REG 				<= Databus(0);
-				when (SWITCH_BASE(5 downto 0)+"000110") => SWITCH_6_REG 				<= Databus(0);
-				when (SWITCH_BASE(5 downto 0)+"000111") => SWITCH_7_REG 				<= Databus(0);
-				when LEVER_BASE(5 downto 0) 				 => LEVER_0_REG				<= Databus(3 downto 0);
-				when (LEVER_BASE(5 downto 0)+"000001")	 => LEVER_1_REG				<= Databus(3 downto 0);
-				when (LEVER_BASE(5 downto 0)+"000010")	 => LEVER_2_REG				<= Databus(3 downto 0);
-				when (LEVER_BASE(5 downto 0)+"000011")	 => LEVER_3_REG				<= Databus(3 downto 0);
-				when (LEVER_BASE(5 downto 0)+"000100")	 => LEVER_4_REG				<= Databus(3 downto 0);
-				when (LEVER_BASE(5 downto 0)+"000101")	 => LEVER_5_REG				<= Databus(3 downto 0);
-				when (LEVER_BASE(5 downto 0)+"000110")	 => LEVER_6_REG				<= Databus(3 downto 0);
-				when (LEVER_BASE(5 downto 0)+"000111")	 => LEVER_7_REG				<= Databus(3 downto 0);
-				when (LEVER_BASE(5 downto 0)+"001000")	 => LEVER_8_REG				<= Databus(3 downto 0);
-				when (LEVER_BASE(5 downto 0)+"001001")	 => LEVER_9_REG				<= Databus(3 downto 0);
-				when T_STAT(5 downto 0)	 					 => T_STAT_REG				<= Databus;
+				when DMA_RX_BUFFER_MSB(5 downto 0) 		 => 
+										DMA_RX_BUFFER_MSB_REG 	<= Databus;
+				when DMA_RX_BUFFER_MID(5 downto 0) 		 => 
+										DMA_RX_BUFFER_MID_REG 	<= Databus;
+				when DMA_RX_BUFFER_LSB(5 downto 0) 		 => 
+										DMA_RX_BUFFER_LSB_REG 	<= Databus;
+						
+				when NEW_INST(5 downto 0) 			  		 => 
+										NEW_INST_REG 				<= Databus;
+						
+				when DMA_TX_BUFFER_MSB(5 downto 0) 		 => 
+										DMA_TX_BUFFER_MSB_REG 	<= Databus;
+				when DMA_TX_BUFFER_LSB(5 downto 0) 		 => 
+										DMA_TX_BUFFER_LSB_REG 	<= Databus;
+						
+				when SWITCH_BASE(5 downto 0) 				 => 
+											SWITCH_0_REG			<= Databus(0);
+				when (SWITCH_BASE(5 downto 0)+"000001") => 
+											SWITCH_1_REG 			<= Databus(0);
+				when (SWITCH_BASE(5 downto 0)+"000010") => 
+											SWITCH_2_REG 			<= Databus(0);
+				when (SWITCH_BASE(5 downto 0)+"000011") => 
+											SWITCH_3_REG 			<= Databus(0);
+				when (SWITCH_BASE(5 downto 0)+"000100") => 
+											SWITCH_4_REG 			<= Databus(0);
+				when (SWITCH_BASE(5 downto 0)+"000101") => 
+											SWITCH_5_REG 			<= Databus(0);
+				when (SWITCH_BASE(5 downto 0)+"000110") => 
+											SWITCH_6_REG			<= Databus(0);
+				when (SWITCH_BASE(5 downto 0)+"000111") => 
+											SWITCH_7_REG			<= Databus(0);
+						
+				when LEVER_BASE(5 downto 0) 				 => 
+											LEVER_0_REG				<= Databus(3 downto 0);
+				when (LEVER_BASE(5 downto 0)+"000001")	 => 
+											LEVER_1_REG				<= Databus(3 downto 0);
+				when (LEVER_BASE(5 downto 0)+"000010")	 => 
+											LEVER_2_REG				<= Databus(3 downto 0);
+				when (LEVER_BASE(5 downto 0)+"000011")	 => 
+											LEVER_3_REG				<= Databus(3 downto 0);
+				when (LEVER_BASE(5 downto 0)+"000100")	 => 
+											LEVER_4_REG				<= Databus(3 downto 0);
+				when (LEVER_BASE(5 downto 0)+"000101")	 => 
+											LEVER_5_REG				<= Databus(3 downto 0);
+				when (LEVER_BASE(5 downto 0)+"000110")	 => 
+											LEVER_6_REG				<= Databus(3 downto 0);
+				when (LEVER_BASE(5 downto 0)+"000111")	 => 
+											LEVER_7_REG				<= Databus(3 downto 0);
+				when (LEVER_BASE(5 downto 0)+"001000")	 => 
+											LEVER_8_REG				<= Databus(3 downto 0);
+				when (LEVER_BASE(5 downto 0)+"001001")	 => 
+											LEVER_9_REG				<= Databus(3 downto 0);
+						
+				when T_STAT(5 downto 0)	 					 => 
+											T_STAT_REG				<= Databus;
 				when others =>
 			end case;
+			
 		 end if;
 	  end if;
 	end process;
 	
-	process (OutputEnable, Address, DMA_RX_BUFFER_MSB_REG, DMA_RX_BUFFER_MID_REG, DMA_RX_BUFFER_LSB_REG, NEW_INST_REG,
-				DMA_TX_BUFFER_MSB_REG, DMA_TX_BUFFER_LSB_REG, SWITCH_0_REG, SWITCH_1_REG, SWITCH_2_REG, SWITCH_3_REG,
-				SWITCH_4_REG, SWITCH_5_REG, SWITCH_6_REG, SWITCH_7_REG, LEVER_0_REG, LEVER_1_REG, LEVER_2_REG, LEVER_3_REG,
-				LEVER_4_REG, LEVER_5_REG, LEVER_6_REG, LEVER_7_REG, LEVER_8_REG, LEVER_9_REG, T_STAT_REG)
+	
+	-- Proceso combinacional que multiplexa la salida de los registros hacia el
+	-- bus de datos en función de la dirección indicada en el bus de
+	-- direcciones.
+	-- La salida al bus de datos se mantendrá a alta impedancia siempre que la 
+	-- señal de control OutputEnable este desactivada.
+	process (OutputEnable, Address, 
+				DMA_RX_BUFFER_MSB_REG, DMA_RX_BUFFER_MID_REG, 
+				DMA_RX_BUFFER_LSB_REG, NEW_INST_REG,
+				DMA_TX_BUFFER_MSB_REG, DMA_TX_BUFFER_LSB_REG, 
+				SWITCH_0_REG, SWITCH_1_REG, SWITCH_2_REG, SWITCH_3_REG, 
+				SWITCH_4_REG, SWITCH_5_REG, SWITCH_6_REG, SWITCH_7_REG, 
+				LEVER_0_REG, LEVER_1_REG, LEVER_2_REG, LEVER_3_REG, LEVER_4_REG,
+				LEVER_5_REG, LEVER_6_REG, LEVER_7_REG, LEVER_8_REG, LEVER_9_REG,
+				T_STAT_REG)
 	begin
 		if OutputEnable = '1' then
 			case Address is
-				when DMA_RX_BUFFER_MSB(5 downto 0) 		 => Databus <= DMA_RX_BUFFER_MSB_REG;
-				when DMA_RX_BUFFER_MID(5 downto 0) 		 => Databus <= DMA_RX_BUFFER_MID_REG;
-				when DMA_RX_BUFFER_LSB(5 downto 0) 		 => Databus <= DMA_RX_BUFFER_LSB_REG;
-				when NEW_INST(5 downto 0) 			  		 => Databus <= NEW_INST_REG;
-				when DMA_TX_BUFFER_MSB(5 downto 0) 		 => Databus <= DMA_TX_BUFFER_MSB_REG;
-				when DMA_TX_BUFFER_LSB(5 downto 0) 		 => Databus <= DMA_TX_BUFFER_LSB_REG;
-				when SWITCH_BASE(5 downto 0) 				 => Databus <= "0000000"&SWITCH_0_REG;
-				when (SWITCH_BASE(5 downto 0)+"000001") => Databus <= "0000000"&SWITCH_1_REG;
-				when (SWITCH_BASE(5 downto 0)+"000010") => Databus <= "0000000"&SWITCH_2_REG;
-				when (SWITCH_BASE(5 downto 0)+"000011") => Databus <= "0000000"&SWITCH_3_REG;
-				when (SWITCH_BASE(5 downto 0)+"000100") => Databus <= "0000000"&SWITCH_4_REG;
-				when (SWITCH_BASE(5 downto 0)+"000101") => Databus <= "0000000"&SWITCH_5_REG;
-				when (SWITCH_BASE(5 downto 0)+"000110") => Databus <= "0000000"&SWITCH_6_REG;
-				when (SWITCH_BASE(5 downto 0)+"000111") => Databus <= "0000000"&SWITCH_7_REG;
-				when LEVER_BASE(5 downto 0) 				 => Databus <= "0000"&LEVER_0_REG;
-				when (LEVER_BASE(5 downto 0)+"000001")	 => Databus <= "0000"&LEVER_1_REG;
-				when (LEVER_BASE(5 downto 0)+"000010")	 => Databus <= "0000"&LEVER_2_REG;
-				when (LEVER_BASE(5 downto 0)+"000011")	 => Databus <= "0000"&LEVER_3_REG;
-				when (LEVER_BASE(5 downto 0)+"000100")	 => Databus <= "0000"&LEVER_4_REG;
-				when (LEVER_BASE(5 downto 0)+"000101")	 => Databus <= "0000"&LEVER_5_REG;
-				when (LEVER_BASE(5 downto 0)+"000110")	 => Databus <= "0000"&LEVER_6_REG;
-				when (LEVER_BASE(5 downto 0)+"000111")	 => Databus <= "0000"&LEVER_7_REG;
-				when (LEVER_BASE(5 downto 0)+"001000")	 => Databus <= "0000"&LEVER_8_REG;
-				when (LEVER_BASE(5 downto 0)+"001001")	 => Databus <= "0000"&LEVER_9_REG;
-				when T_STAT(5 downto 0)	 					 => Databus <= T_STAT_REG;
-				when others 									 => Databus <= (others => '0');
+				when DMA_RX_BUFFER_MSB(5 downto 0) 		 => 
+														Databus <= DMA_RX_BUFFER_MSB_REG;
+				when DMA_RX_BUFFER_MID(5 downto 0) 		 => 
+														Databus <= DMA_RX_BUFFER_MID_REG;
+				when DMA_RX_BUFFER_LSB(5 downto 0) 		 => 
+														Databus <= DMA_RX_BUFFER_LSB_REG;
+				
+				when NEW_INST(5 downto 0) 			  		 => 
+														Databus <= NEW_INST_REG;
+				
+				
+				when DMA_TX_BUFFER_MSB(5 downto 0) 		 => 
+														Databus <= DMA_TX_BUFFER_MSB_REG;
+				when DMA_TX_BUFFER_LSB(5 downto 0) 		 => 
+														Databus <= DMA_TX_BUFFER_LSB_REG;
+				
+				when SWITCH_BASE(5 downto 0) 				 => 
+														Databus <= "0000000"&SWITCH_0_REG;
+				when (SWITCH_BASE(5 downto 0)+"000001") => 
+														Databus <= "0000000"&SWITCH_1_REG;
+				when (SWITCH_BASE(5 downto 0)+"000010") => 
+														Databus <= "0000000"&SWITCH_2_REG;
+				when (SWITCH_BASE(5 downto 0)+"000011") => 
+														Databus <= "0000000"&SWITCH_3_REG;
+				when (SWITCH_BASE(5 downto 0)+"000100") => 
+														Databus <= "0000000"&SWITCH_4_REG;
+				when (SWITCH_BASE(5 downto 0)+"000101") => 
+														Databus <= "0000000"&SWITCH_5_REG;
+				when (SWITCH_BASE(5 downto 0)+"000110") => 
+														Databus <= "0000000"&SWITCH_6_REG;
+				when (SWITCH_BASE(5 downto 0)+"000111") => 
+														Databus <= "0000000"&SWITCH_7_REG;
+				
+				when LEVER_BASE(5 downto 0) 				 => 
+														Databus <= "0000"&LEVER_0_REG;
+				when (LEVER_BASE(5 downto 0)+"000001")	 => 
+														Databus <= "0000"&LEVER_1_REG;
+				when (LEVER_BASE(5 downto 0)+"000010")	 => 
+														Databus <= "0000"&LEVER_2_REG;
+				when (LEVER_BASE(5 downto 0)+"000011")	 => 
+														Databus <= "0000"&LEVER_3_REG;
+				when (LEVER_BASE(5 downto 0)+"000100")	 => 
+														Databus <= "0000"&LEVER_4_REG;
+				when (LEVER_BASE(5 downto 0)+"000101")	 => 
+														Databus <= "0000"&LEVER_5_REG;
+				when (LEVER_BASE(5 downto 0)+"000110")	 => 
+														Databus <= "0000"&LEVER_6_REG;
+				when (LEVER_BASE(5 downto 0)+"000111")	 => 
+														Databus <= "0000"&LEVER_7_REG;
+				when (LEVER_BASE(5 downto 0)+"001000")	 => 
+														Databus <= "0000"&LEVER_8_REG;
+				when (LEVER_BASE(5 downto 0)+"001001")	 => 
+														Databus <= "0000"&LEVER_9_REG;
+				
+				when T_STAT(5 downto 0)	 					 => 
+														Databus <= T_STAT_REG;
+				
+				when others 									 => 
+														Databus <= (others => '0');
 			end case;
 		else
 			Databus <= (others => 'Z');
 		end if;
 	end process;
 
-	Switches <= SWITCH_7_REG&SWITCH_6_REG&SWITCH_5_REG&SWITCH_4_REG&SWITCH_3_REG&SWITCH_2_REG&SWITCH_1_REG&SWITCH_0_REG;
+	-- Concatenación de las señales de salida de todos los registros de 
+	-- "Switch" para la creación del bus de salida "Switches". 
+	Switches <= SWITCH_7_REG&SWITCH_6_REG&SWITCH_5_REG&SWITCH_4_REG&
+					SWITCH_3_REG&SWITCH_2_REG&SWITCH_1_REG&SWITCH_0_REG;
 
+	
+	-- Lógica necesaria para transformar el valor almacenado en el registro de 
+	-- temperatura (binario) a su representación en dos dígitos sobre un display
+	-- alfanumérico (7 segmentos).
+	-- Los 4 bits superiores del registro se utilizarán para representar el 
+	-- dígito correspondiente a decenas. Los 4 bits inferiores, para el de las
+	-- unidades.
 	with T_STAT_REG(7 downto 4) select
 		Temp_H <=
 			 "0000110" when "0001",  -- 1
