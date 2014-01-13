@@ -16,28 +16,53 @@ use work.PIC_pkg.all;
 entity alu is
     Port ( Clk : in  STD_LOGIC;
            Reset : in  STD_LOGIC;
+			  
+			  -- Código de microinstrucción decodificado en la Unidad de Control.
            u_instruction : in  alu_op;
+			  
+			  -- Banderas de estado de la última operación.
            FlagZ : out  STD_LOGIC;
            FlagC : out  STD_LOGIC;
            FlagN : out  STD_LOGIC;
            FlagE : out  STD_LOGIC;
+			  
+			  -- Índice orientado a accesos indexados a memoria.
            Index : out  STD_LOGIC_VECTOR (7 downto 0);
+			  
+			  -- Bus de datos del sistema.
            Databus : inout  STD_LOGIC_VECTOR (7 downto 0));
 end alu;
 
 architecture rtl of alu is
 	
+	-- Señales usadas para inferir los biestables necesarios para cada uno de
+	-- los registros existentes en la ALU.
 	signal A, B, ACC, IND : std_logic_vector(7 downto 0);
+	-- Señal de enable de cada uno de los registros anteriores.
 	signal A_enable, B_enable, ACC_enable, IND_enable : std_logic;
+	-- Señales auxiliares empleadas para llevar a cabo la multiplexación de las 
+	-- señales de entrada a los registros.
 	signal a_in, b_in, acc_in, ind_in : std_logic_vector(7 downto 0);
 	
+	-- Señales usadas para inferir los biestables necesarios para las banderas 	
+	-- de estado de la operación realizada en la ALU.
 	signal FlagZ_reg, FlagC_reg, FlagN_reg, FlagE_reg : std_logic;
+	-- Señales auxiliares empleadas para llevar a cabo la multiplexación de las 
+	-- diferentes fuentes de estos biestables.
 	signal FlagZ_in, FlagC_in, FlagN_in, FlagE_in : std_logic;
 	
+	-- Señales empleadas para la creación de un único sumador en la ALU (y uno
+	-- adicional para complementar números a complemento a 2).
+	-- Sum_out es el resultado de la suma, mientras que op0 y op1 son los
+	-- operandos. Éstas últimas señales multiplexan las entradas del sumador. 
 	signal sum_out, op0, op1 : std_logic_vector(7 downto 0);
 
 begin
 
+	-- Proceso secuencial para la síntesis de los registros de la ALU y sus 
+	-- banderas.
+	-- Dispone de una señal de Reset asíncrono activa a nivel bajo, empleada 
+	-- para inicializar los registros y banderas de la ALU a 0.
 	process(Clk, Reset)
 	begin
 		if Reset = '0' then
@@ -50,24 +75,22 @@ begin
 			FlagN_reg <= '0';
 			FlagE_reg <= '0';
 		elsif Clk'event and Clk = '1' then
+			
 			if A_enable = '1' then
 				A <= a_in;
 			else
 				A <= A;
 			end if;
-			
 			if B_enable = '1' then
 				B <= b_in;
 			else
 				B <= B;
 			end if;
-			
 			if ACC_enable = '1' then
 				ACC <= acc_in;
 			else
 				ACC <= ACC;
 			end if;
-			
 			if IND_enable = '1' then
 				IND <= ind_in;
 			else
@@ -82,6 +105,9 @@ begin
 		end if;
 	end process;
 	
+	
+	-- Proceso combinacional para la multiplexación de las entradas a cada uno 
+	-- de los registros de la ALU, en función del código de operación recibido. 
 	process(u_instruction, Databus, A, B, ACC, sum_out)
 	begin
 		a_in <= X"00";
@@ -160,10 +186,15 @@ begin
 				
 			when op_oeacc => 
 				Databus <= ACC;
+				
 			when others =>	
+			
 		end case;
 	end process;
 	
+	
+	-- Proceso combinacional para la multiplexación de las fuentes para cada una 
+	-- de las banderas ALU, en función del código de operación recibido. 
 	process(u_instruction, A, B, acc_in, sum_out, op0, op1)
 	begin
 		FlagZ_in <= '0';
@@ -199,8 +230,7 @@ begin
 			when op_and => 
 				if acc_in = X"00" then
 					FlagZ_in <= '1';
-				end if;
-				
+				end if;				
 			when op_or => 
 				if acc_in = X"00" then
 					FlagZ_in <= '1';
@@ -222,7 +252,6 @@ begin
 				if A > B then
 					FlagZ_in <= '1';
 				end if;
-				
 
 			when op_ascii2bin =>
 				if acc_in < X"00" or acc_in > X"09" then
@@ -234,9 +263,12 @@ begin
 				end if;
 			
 			when others =>
+			
 		end case;
 	end process;
 	
+	-- Proceso combinacional para la multiplexación de las entradas al sumador, 
+	-- en función del código de operación recibido. 
 	process(u_instruction, A, B)
 	begin
 		case u_instruction is
@@ -246,28 +278,31 @@ begin
 			when op_sub =>
 				op0 <= A(7 downto 0);
 				op1 <= (not B(7 downto 0)) + X"01";
+				
 			when op_ascii2bin =>
 				op0 <= A(7 downto 0);
 				op1 <= (not X"30") + X"01";
 			when op_bin2ascii =>
 				op0 <= A(7 downto 0);
 				op1 <= X"30";
+				
 			when others => 
 				op0 <= (others => '0');
 				op1 <= (others => '0');
 		end case;
 	end process;
 	
+	-- Creación del sumador.
 	sum_out <= op0 + op1;
 	
+	-- Unión entre las salidas del registro Index y las banderas de la ALU, y 
+	-- las salidas de la entidad.
 	Index <= IND;
 	
 	FlagZ <= FlagZ_reg;
 	FlagC <= FlagC_reg;
 	FlagN <= FlagN_reg;
 	FlagE <= FlagE_reg;
-	
-	
 
 end rtl;
 
