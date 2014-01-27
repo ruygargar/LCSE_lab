@@ -135,7 +135,7 @@ begin  -- RTL
   begin
     if Reset = '0' then  -- asynchronous reset (active low)
       Data_FF   <= (others => '0');
-      LineRD_in <= '0';
+      LineRD_in <= '1';
       Ack_in    <= '1';
     elsif Clk'event and Clk = '1' then  -- rising edge clock
       LineRD_in <= RD;

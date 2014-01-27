@@ -10,6 +10,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use ieee.std_logic_signed.all;
+use ieee.std_logic_arith.all;
 
 use work.PIC_pkg.all;
 
@@ -245,11 +246,11 @@ begin
 					FlagZ_in <= '1';
 				end if;
 			when op_cmpl =>
-				if A < B then
+				if unsigned(A) < unsigned(B) then
 					FlagZ_in <= '1';
 				end if;
 			when op_cmpg =>
-				if A > B then
+				if unsigned(A) > unsigned(B) then
 					FlagZ_in <= '1';
 				end if;
 
